@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>График</title>
+</head>
+<body>
+    <canvas id="myChart" width="800" height="400"></canvas>
+    <script>
+        const fs = require('fs');
+        const Chart = require('chart.js');
+
+        fs.readFile('graph_data.json', 'utf8', (err, data) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            const graphData = JSON.parse(data);
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: graphData['Длина волны (нм)'],
+                    datasets: [
+                        {
+                            label: 'Коэффициент пропускания',
+                            data: graphData['Коэффициент пропускания'],
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                        },
+                        {
+                            label: 'Коэффициент отражения',
+                            data: graphData['Коэффициент отражения'],
+                            borderColor: 'rgba(192, 75, 75, 1)',
+                            borderWidth: 2,
+                        },
+                    ],
+                },
+                options: {
+                    // Настройки графика
+                },
+            });
+        });
+    </script>
+</body>
+</html>

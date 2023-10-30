@@ -1,0 +1,124 @@
+const { app, BrowserWindow } = require('electron');
+const path = require('path');
+const url = require('url');
+
+let mainWindow;
+
+function createWindow() {
+  mainWindow = new BrowserWindow({ width: 800, height: 600 });
+  mainWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'index.html'),
+    protocol: 'file:',
+    slashes: true
+  }));
+}
+
+app.whenReady().then(createWindow);
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
+const { exec } = require('child_process');
+
+function generateGraph() {
+  const n_ext = parseFloat(document.getElementById('n_ext').value);
+  const layers = parseInt(document.getElementById('layers').value);
+
+  const pythonScriptPath = 'C:\\Users\\apce1\\Desktop\\RAZRABOTKAPO\\my-electron-app\\t.py';
+  const command = `python ${pythonScriptPath} ${n_ext} ${layers}`;
+
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Ошибка выполнения Python-скрипта: ${error.message}`);
+      return;
+    }
+
+    if (stderr) {
+      console.error(`Ошибка выполнения Python-скрипта: ${stderr}`);
+      return;
+    }
+
+    console.log('Результат выполнения Python-скрипта:', stdout);
+  });
+}
+import numpy as np
+import matplotlib.pyplot as plt
+import sys
+
+n_ext = float(sys.argv[1])
+layers = int(sys.argv[2])
+
+blocks = 8
+
+layers_parameters = [[1.46, 120 * 10 ** -9],
+                     [2.2 + 0.0001j, 80 * 10 ** -9]]
+
+wl_start = 400
+wl_stop = 1400
+
+def layer_matrix(n_layer, d_layer, wl):
+    m = np.zeros((2, 2), 'complex')
+    m[0, 0] = np.cos(2 * np.pi * n_layer / wl * d_layer)
+    m[0, 1] = (np.sin(2 * np.pi * n_layer / wl * d_layer) / n_layer) * 1j
+    m[1, 0] = (np.sin(2 * np.pi * n_layer / wl * d_layer) * n_layer) * 1j
+    m[1, 1] = np.cos(2 * np.pi * n_layer / wl * d_layer)
+    return m
+
+def block_matrix(wl):
+    m = layer_matrix(layers_parameters[layers - 1][0], layers_parameters[layers - 1][1], wl)
+    for k in reversed(range(layers - 1)):
+        m = np.dot(m, layer_matrix(layers_parameters[k][0], layers_parameters[k][1], wl))
+    return m
+
+def S(wavelen):
+    m = np.linalg.matrix_power(block_matrix(wavelen), blocks)
+    return m
+
+def R(l):
+    return abs((S(l)[0][1] * n_ext ** 2 + (S(l)[0][0] - S(l)[1][1]) * n_ext - S(l)[1][0]) / (
+            S(l)[0][1] * n_ext ** 2 - (S(l)[0][0] + S(l)[1][1]) * n_ext + S(l)[1][0])) ** 2
+
+def T(l):
+    return abs((2 * n_ext) / (S(l)[0][1] * n_ext ** 2 - (S(l)[0][0] + S(l)[1][1]) * n_ext + S(l)[1][0])) ** 2
+
+wl_data = np.linspace(wl_start, wl_stop, 1001)
+
+T_data = list(map(T, wl_data*1e-9))
+R_data = list(map(R, wl_data*1e-9))
+
+plt.figure()
+plt.plot(wl_data, T_data, color='purple')
+plt.title('Спектр пропускания слоистой структуры')
+plt.xlabel('Длина волны, нм')
+plt.ylabel('Коэффициент пропускания')
+plt.grid()
+plt.show()
+<!DOCTYPE html>
+<html>
+<head>
+  <title>График пропускания</title>
+</head>
+<body>
+  <button onclick="generateGraph()">Генерировать график</button>
+  <div>
+    <label for="n_ext">Показатель преломления:</label>
+    <input type="number" id="n_ext" step="0.1" min="0">
+  </div>
+  <div>
+    <label for="layers">Количество слоев:</label>
+    <input type="number" id="layers" min="1">
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+const { ipcRenderer } = require('electron');
+
+ipcRenderer.on('plotReady', (event, arg) => {
+  const plotDiv = document.getElementById('plot');
+  plotDiv.innerHTML = '<img src="plot.png">';
+});

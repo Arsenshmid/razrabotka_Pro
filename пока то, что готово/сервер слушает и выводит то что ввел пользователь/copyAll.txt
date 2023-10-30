@@ -1,0 +1,1 @@
+for file in main.js renderer.js t.py index.html renderer.js; do echo "File: $file"; cat "$file"; done > newfile.txt

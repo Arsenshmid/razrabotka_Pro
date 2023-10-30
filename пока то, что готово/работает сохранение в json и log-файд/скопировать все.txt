@@ -1,0 +1,10 @@
+cat  index.js  main.js   renderer.js t.py   index.html  renderer.js > newfile.txt
+
+
+
+
+
+
+
+
+
