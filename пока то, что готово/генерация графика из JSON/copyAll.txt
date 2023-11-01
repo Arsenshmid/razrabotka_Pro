@@ -1,0 +1,1 @@
+for file in initialization.py  transfer_matrix_with_init.py  user_interface.py; do echo "File: $file"; cat "$file"; done > newfile.txt
