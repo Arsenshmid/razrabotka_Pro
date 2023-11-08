@@ -96,16 +96,16 @@ document.getElementById('data-form').addEventListener('submit', (e) => {
   ipcRenderer.send('submit-data', data);
 });
 
-// Добавьте код для отображения графика на странице
+
 ipcRenderer.on('display-plot', (event, plotData) => {
-  // Очистите предыдущий график, если есть
+ 
   document.getElementById('plot-container').innerHTML = '';
   
-  // Создайте элемент <img> для отображения графика
+  
   const img = document.createElement('img');
   img.src = `data:image/png;base64,${plotData}`;
   
-  // Добавьте график в контейнер
+  
   document.getElementById('plot-container').appendChild(img);
 });
 File: t.py
@@ -193,15 +193,15 @@ document.getElementById('data-form').addEventListener('submit', (e) => {
   ipcRenderer.send('submit-data', data);
 });
 
-// Добавьте код для отображения графика на странице
+
 ipcRenderer.on('display-plot', (event, plotData) => {
-  // Очистите предыдущий график, если есть
+
   document.getElementById('plot-container').innerHTML = '';
   
-  // Создайте элемент <img> для отображения графика
+  
   const img = document.createElement('img');
   img.src = `data:image/png;base64,${plotData}`;
   
-  // Добавьте график в контейнер
+ 
   document.getElementById('plot-container').appendChild(img);
 });
