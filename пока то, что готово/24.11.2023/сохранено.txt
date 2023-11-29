@@ -1,0 +1,162 @@
+File: init.json
+{
+  "input_parameters": {
+    "n_ext": {
+      "type": "string",
+      "discription": "Enter the refractive index of the external environment in the format 1+2j: \n"
+    },
+    "num_of_layers": {
+      "type": "int",
+      "discription": "Enter the number of layers in the unit cell: \n"
+    },
+    "num_of_blocks": {
+      "type": "int",
+      "discription": "Enter the number of elementary cells in the structure: \n"
+    },
+    "layers_parameters": {
+      "type": "list",
+      "discription": "a list (or array) of the size num_of_layers of pairs [string n, float d], where n is the refractive index of the layer (in the format 1+2 j), d is the thickness of the layer (in nanometers): \n",
+      "size": "num_of_layers"
+    },
+    "wl_start": {
+      "type": "float",
+      "discription": "Enter the left border of the displayed wavelength range in nm: \n"
+    },
+    "wl_stop": {
+      "type": "float",
+      "discription": "Enter the right border of the displayed wavelength range in nm: \n"
+    }
+  },
+  "output_options": {
+    "spectrum_type": [
+      "R",
+      "T"
+    ]
+  }
+}File: main.js
+const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('path');
+
+let mainWindow;
+
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
+
+  mainWindow.loadFile('index.html');
+
+  // Добавляем слушатель события от процесса рендеринга
+  ipcMain.on('request_init_data', (event) => {
+    // Чтение файла init.json
+    const initFilePath = path.join(__dirname, 'init.json');
+    const initData = fs.readFileSync(initFilePath, 'utf-8');
+    event.reply('init_data', initData);
+  });
+}
+
+app.whenReady().then(createWindow);
+File: index.html
+<!DOCTYPE html>
+<html>
+  <body>
+    <div id="inputFields"></div>
+    <button id="saveButton">Save</button>
+    <div id="output"></div>
+    <script src="renderer.js"></script>
+  </body>
+</html>
+File: input.json
+{"param1":"12","param2":"23","param3":"34","param4":"55"}File: renderer.js
+// Чтение файла init.json
+fs.readFile(path.join(__dirname, '/init.json'), 'utf-8', (err, data) => {
+    if (err) {
+        console.error("An error occurred while reading the file:", err);
+        return;
+    }
+
+    // Парсинг JSON-строки в объект
+    const initData = JSON.parse(data);
+
+    // Получение контейнера для полей ввода
+    const container = document.getElementById('inputFields');
+
+    // Отрисовка полей ввода
+    Object.entries(initData.input_parameters).forEach(([key, value]) => {
+        // Создание элемента input и добавление его в контейнер
+        const input = document.createElement('input');
+        input.id = key;
+        input.placeholder = value.discription;
+        container.appendChild(input);
+
+        // Создание элемента br и добавление его в контейнер
+        const br = document.createElement('br');
+        container.appendChild(br);
+    });
+
+    // Отрисовка полей выбора
+    Object.entries(initData.output_options).forEach(([key, options]) => {
+        // Создание элемента select и добавление его в контейнер
+        const select = document.createElement('select');
+        select.id = key;
+        container.appendChild(select);
+
+        // Создание элементов option и добавление их в select
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.text = option;
+            select.appendChild(optionElement);
+        });
+
+        // Создание элемента br и добавление его в контейнер
+        const br = document.createElement('br');
+        container.appendChild(br);
+    });
+});
+
+// Сохранение введенных данных в файл input.json при нажатии на кнопку
+document.getElementById('saveButton').addEventListener('click', () => {
+    const data = {
+        input_parameters: {},
+        output_options: {},
+    };
+
+    // Сбор введенных данных
+    document.querySelectorAll('input').forEach(input => {
+        let value = input.value;
+
+        // Проверка на число
+        if (!isNaN(value)) {
+            value = Number(value);
+        }
+
+        // Проверка на комплексное число
+        else if (/^[0-9]+[+-][0-9]+j$/.test(value.replace(/\s/g, ''))) {
+            value = value.replace(/\s/g, '');
+        }
+
+        data.input_parameters[input.id] = value;
+    });
+
+    // Сбор выбранных опций
+    document.querySelectorAll('select').forEach(select => {
+        data.output_options[select.id] = select.value;
+    });
+
+    // Запись данных в файл input.json
+    fs.writeFile(path.join(__dirname, '/input.json'), JSON.stringify(data), err => {
+        if (err) {
+            console.error("An error occurred while writing the file:", err);
+        }
+    });
+
+    // Вывод введенных данных
+    const output = document.getElementById('output');
+    output.textContent = 'Entered: ' + JSON.stringify(data);
+});

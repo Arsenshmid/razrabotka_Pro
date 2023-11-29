@@ -1,0 +1,18 @@
+{
+  "n_ext": "1",
+  "num_of_layers": 2,
+  "num_of_blocks": 8,
+  "layers_parameters": [
+    [
+      "1.46",
+      120
+    ],
+    [
+      "2.2+0.001j",
+      80
+    ]
+  ],
+  "wl_start": 400.0,
+  "wl_stop": 1400.0,
+  "output_option": "T"
+}

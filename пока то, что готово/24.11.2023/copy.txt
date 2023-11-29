@@ -1,0 +1,1 @@
+for file in init.json   main.js index.html  input.json  renderer.js; do echo "File: $file"; cat "$file"; done > сохранено.txt

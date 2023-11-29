@@ -1,0 +1,7 @@
+{
+    "par_1": {"type": "float", "description": "Введите значение par_1"},
+    "par_2": {"type": "int", "description": "Введите значение par_2"},
+    "par_3": {"type": "complex", "description": "Введите значение par_3"},
+	"par_4": {"type": "dict", "description": "Введите словарь par_4", "key_type": "string", "value_type": "int"},
+	"par_5": {"type": "list", "description": "Введите список par_5", "element_type": "float"}
+}
